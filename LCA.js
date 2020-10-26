@@ -5,13 +5,14 @@ https://adrianmejia.com/data-structures-for-beginners-trees-binary-search-tree-t
 //Create Nodes
 
 const LEFT = 0;
-const RIGHT = 1;
+const MID = 1;
+const RIGHT = 2;
 
 class TreeNode {
   constructor(val) {
     this.val = val;
     this.descendents = [];
-    this.parent = null;
+    this.parents = [];
   }
 
   get left() {
@@ -21,7 +22,7 @@ class TreeNode {
   set left(node) {
     this.descendents[LEFT] = node;
     if (node) {
-      node.parent = this;
+      node.parents.push(this)
     }
   }
 
@@ -32,15 +33,22 @@ class TreeNode {
   set right(node) {
     this.descendents[RIGHT] = node;
     if (node) {
-      node.parent = this;
+      node.parents.push(this)
     }
   }
-}
 
-// console.log("LCA(4, 5): " + findLCA(4, 5));
-// console.log("LCA(4, 6): " + findLCA(4, 6));
-// console.log("LCA(3, 4): " + findLCA(3, 4));
-// console.log("LCA(2, 4): " + findLCA(2, 4));
+    get middle() {
+      return this.descendents[MID];
+    }
+  
+    set middle(node) {
+      this.descendents[MID] = node;
+      if (node) {
+        node.parents.push(this)
+      }
+    }
+  
+}
 
 /*
 This program is based on the java solution found at
@@ -49,7 +57,27 @@ https://www.geeksforgeeks.org/lowest-common-ancestor-binary-tree-set-1/
 */
 
 //Functions
-function LCA(num1, num2) {
+
+function LCA_DAG(num1, num2) {
+  //Build Tree
+  let startRoot = new TreeNode(1);
+  startRoot.middle = new TreeNode(3);
+  startRoot.middle.middle = new TreeNode(5);
+  startRoot.middle.middle.middle = new TreeNode(6);
+  startRoot.middle.left = new TreeNode(7);
+  startRoot.middle.right = new TreeNode(4);
+
+  startRoot.left = startRoot.middle.left
+  startRoot.left.middle = new TreeNode(8);
+
+  startRoot.right = new TreeNode(2);
+  startRoot.right.left = startRoot.middle
+  startRoot.right.middle = startRoot.middle.right
+  return findLCA(startRoot, num1, num2);
+}
+
+
+function LCA_Tree(num1, num2) {
   //Build Tree
   let startRoot = new TreeNode(1);
   startRoot.left = new TreeNode(2);
@@ -70,8 +98,6 @@ function findLCA(root, n1, n2) {
 
 function findLCAInternal(root, n1, n2, path1, path2) {
   if (!findPath(root, n1, path1) || !findPath(root, n2, path2)) {
-    console.log(path1.length > 0 ? "n1 is present" : "n1 is missing");
-    console.log(path2.length > 0 ? "n2 is present" : "n2 is missing");
     return -1;
   }
 
@@ -96,13 +122,18 @@ function findPath(root, n, path) {
     return true;
   }
 
+  if (root.middle != null && findPath(root.middle, n, path)) {
+    return true;
+  }
+
   if (root.right != null && findPath(root.right, n, path)) {
     return true;
   }
+
 
   path.pop();
 
   return false;
 }
 
-module.exports = LCA;
+module.exports = LCA_DAG;
